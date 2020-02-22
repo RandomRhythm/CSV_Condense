@@ -75,7 +75,9 @@ with io.open(strOutPath, "w", encoding="utf-8") as f:
 
             keyitem = ""
             logDtime = ""
-            if len(row) >= intColumnCount:
+            if len(row) == intColumnCount:
+                print("decrease column count by one") #exclude non conforming entry
+            if len(row) > intColumnCount:
                 if len(listKeyColumns) > 0:
                     for listItem in listKeyColumns:
                         if keyitem == "":
@@ -160,7 +162,7 @@ with io.open(strOutPath, "w", encoding="utf-8") as f:
                     dictFirstL[keyitem + "_Alternate"] = row;
                     dictOutput[keyitem] = 0;
 
-
+                            
     for outputline in dictOutput:
         if outputline in dictLastL:
             strTmpLast =  dictLastL[outputline];
@@ -168,7 +170,9 @@ with io.open(strOutPath, "w", encoding="utf-8") as f:
         else:
             strTmpLast = "N/A"
             strTmpLastAlt = "N/A"
-            strOutputRow = outputline + "|" + str(dictOutput[outputline]) + "|" + time.strftime('%Y-%m-%dT%H:%M:%SZ', dictFirstL[outputline]) + "|" +  strTmpLast + FirstOrSecond(boolFirstRow,dictFirstL[outputline + "_Alternate"],strTmpLastAlt)
+        strOutputRow = outputline + "|" + str(dictOutput[outputline]) + "|" + time.strftime('%Y-%m-%dT%H:%M:%SZ', dictFirstL[outputline]) + "|" +  strTmpLast + FirstOrSecond(boolFirstRow,dictFirstL[outputline + "_Alternate"],strTmpLastAlt)
         f.write("\"" + strOutputRow.replace("|", "\",\"") + "\"\n")
             
+
+
 
