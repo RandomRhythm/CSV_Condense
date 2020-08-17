@@ -65,6 +65,10 @@ def returnPipe(listRow):
         strReturnRow = strReturnRow + "|" + listRow[n]
     return strReturnRow
 
+def writeCSV(fHandle, rowOut):
+    fHandle.write("\"" + rowOut.replace("|", "\",\"") + "\"\n")
+
+
 csv.field_size_limit(maxInt)
 with io.open(strOutPath, "w", encoding="utf-8") as f:
 
@@ -148,7 +152,7 @@ with io.open(strOutPath, "w", encoding="utf-8") as f:
 
                 elif keyitem in dictOutput:
                     if dictOutput[keyitem] > 1:
-                        f.write(keyitem + "|" + str(dictOutput[keyitem]) + "|" + dictLastL[keyitem] + "|" + time.strftime('%Y-%m-%dT%H:%M:%SZ', dictFirstL[keyitem]) + FirstOrSecond(boolFirstRow,dictFirstL[keyitem + "_Alternate"],dictLastL[keyitem + "_Alternate"]) + "\n")
+                        writeCSV(f, keyitem + "|" + str(dictOutput[keyitem]) + "|" + dictLastL[keyitem] + "|" + time.strftime('%Y-%m-%dT%H:%M:%SZ', dictFirstL[keyitem]) + FirstOrSecond(boolFirstRow,dictFirstL[keyitem + "_Alternate"],dictLastL[keyitem + "_Alternate"]))
                     del dictOutput[keyitem]
                     del dictFirstL[keyitem]
                     if keyitem in dictLastL:
@@ -171,7 +175,7 @@ with io.open(strOutPath, "w", encoding="utf-8") as f:
             strTmpLast = "N/A"
             strTmpLastAlt = "N/A"
         strOutputRow = outputline + "|" + str(dictOutput[outputline]) + "|" + time.strftime('%Y-%m-%dT%H:%M:%SZ', dictFirstL[outputline]) + "|" +  strTmpLast + FirstOrSecond(boolFirstRow,dictFirstL[outputline + "_Alternate"],strTmpLastAlt)
-        f.write("\"" + strOutputRow.replace("|", "\",\"") + "\"\n")
+        writeCSV(f,strOutputRow)
             
 
 
