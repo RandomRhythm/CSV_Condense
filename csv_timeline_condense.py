@@ -22,7 +22,8 @@ strOutPath = "D:\\logs\\analysisoutput.txt" #output file
 strSeparatorChar = "," #\t for tab delimeter
 #strdateFormat = "%Y-%m-%dT%H:%M:%S.%fZ"; #2018-12-27T15:19:53.141Z
 #strdateFormat = "%Y-%m-%d %H:%M:%S"; #2018-12-27 00:00:00
-#strdateFormat = "%Y-%m-%d %H:%M:%S.%f"; 
+#strdateFormat = "%Y-%m-%d %H:%M:%S.%f";
+#strdateFormat = "%m/%d/%Y %H:%M"; # 12/27/2018 14:47
 #strdateFormat = "%m/%d/%Y %I:%M:%S %p"; # 12/27/2018 2:47:52 PM
 strdateFormat = "%m/%d/%Y %I:%M:%S %p"; # 12/27/2018 2:47:52 PM
 #strdateFormat = "%b %d, %Y, %I:%M:%S %p"; # Dec 27, 2018, 2:47:52 PM
@@ -39,7 +40,7 @@ intColumnCount = 5;#Number of columns in CSV. If column count varies then set th
 boolFirstRow = True #Output first row or last row with condensed output
 boolIncludeSingleEvent = True #Output for key with no match
 boolRemoveInvalidCharsFromDate = False #if errors are encountered parsing dates then set this to True
-
+boolCaseSensitive = False # do all tracking and comparison in lowercase
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -76,7 +77,7 @@ with io.open(strOutPath, "w", encoding="utf-8") as f:
         reader = csv.reader(csvfile, delimiter=strSeparatorChar,quoting=csv.QUOTE_NONE) #, quotechar='"'
         keyitem = "";
         for row in reader:
-
+            logDateTime = None
             keyitem = ""
             logDtime = ""
             if len(row) == intColumnCount:
@@ -107,7 +108,7 @@ with io.open(strOutPath, "w", encoding="utf-8") as f:
                         logDtime = removeInvalidChars(logDtime)
                     logDateTime = time.strptime(logDtime, strdateFormat)
                 else:
-                    logDateTime = datetime.datetime.fromtimestamp(int(logDtime))
+                    logDateTime = datetime.datetime.fromtimestamp(float(logDtime))
 
             except ValueError:
                 #try:
@@ -121,8 +122,10 @@ with io.open(strOutPath, "w", encoding="utf-8") as f:
                 #except ValueError:
                 #    print ("date parse error:" + keyitem + "|" + logDtime)
                     
-            if boolEpoch == True:
+            if boolEpoch == True and logDateTime != None:
                 logDateTime = logDateTime.timetuple();
+            if boolCaseSensitive == False:
+                keyitem = keyitem.lower();
             if keyitem in dictTrack and logDtime != "":
 
                 if boolOldestFirst == True:
