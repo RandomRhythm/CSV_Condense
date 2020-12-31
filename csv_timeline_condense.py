@@ -20,6 +20,7 @@ maxInt = 100000000 #csv.field_size_limit
 strCVStoParse = "D:\\logs\\fileforanalysis.csv" #input file
 strOutPath = "D:\\logs\\analysisoutput.txt" #output file
 strSeparatorChar = "," #\t for tab delimeter
+strQuoteChar = "" #set "" to not use quote char
 #strdateFormat = "%Y-%m-%dT%H:%M:%S.%fZ"; #2018-12-27T15:19:53.141Z
 #strdateFormat = "%Y-%m-%d %H:%M:%S"; #2018-12-27 00:00:00
 #strdateFormat = "%Y-%m-%d %H:%M:%S.%f";
@@ -37,10 +38,13 @@ boolTimeInNextColumn = False #Date and time are separated columns
 intKeyColumn = 1; #key used for tracking 
 listKeyColumns = [] # if a list is specified then this list of columns is used instead of intKeyColumn. Example listKeyColumns = [1,7]. Blank value = []
 intColumnCount = 5;#Number of columns in CSV. If column count varies then set this to the lowest number of columns
-boolFirstRow = True #Output first row or last row with condensed output
+boolRowSample = True #Output a sample row with the condensed output (set to false if there are formatting issues with the input CSV to avoid carrrying the issue over)
+boolFirstRow = True #Output first row or last row as sample with condensed output
 boolIncludeSingleEvent = True #Output for key with no match
 boolRemoveInvalidCharsFromDate = False #if errors are encountered parsing dates then set this to True
 boolCaseSensitive = False # do all tracking and comparison in lowercase
+boolTruncateAtChar = False #truncate key at first space
+strTruncateChar = "\t"
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -74,7 +78,10 @@ csv.field_size_limit(maxInt)
 with io.open(strOutPath, "w", encoding="utf-8") as f:
 
     with open(strCVStoParse, "rt", encoding='utf-8') as csvfile:
-        reader = csv.reader(csvfile, delimiter=strSeparatorChar,quoting=csv.QUOTE_NONE) #, quotechar='"'
+        if strQuoteChar == "":
+          reader = csv.reader(csvfile, delimiter=strSeparatorChar,quoting=csv.QUOTE_NONE) #, quotechar='"'
+        else:
+          reader = csv.reader(csvfile, delimiter=strSeparatorChar,quotechar=strQuoteChar) #, quotechar='"'
         keyitem = "";
         for row in reader:
             logDateTime = None
@@ -124,6 +131,9 @@ with io.open(strOutPath, "w", encoding="utf-8") as f:
                     
             if boolEpoch == True and logDateTime != None:
                 logDateTime = logDateTime.timetuple();
+            if boolTruncateAtChar == True:
+              if keyitem.find(strTruncateChar) > -1:
+                keyitem = keyitem[:keyitem.find(strTruncateChar)]
             if boolCaseSensitive == False:
                 keyitem = keyitem.lower();
             if keyitem in dictTrack and logDtime != "":
@@ -155,7 +165,10 @@ with io.open(strOutPath, "w", encoding="utf-8") as f:
 
                 elif keyitem in dictOutput:
                     if dictOutput[keyitem] > 1:
-                        writeCSV(f, keyitem + "|" + str(dictOutput[keyitem]) + "|" + dictLastL[keyitem] + "|" + time.strftime('%Y-%m-%dT%H:%M:%SZ', dictFirstL[keyitem]) + FirstOrSecond(boolFirstRow,dictFirstL[keyitem + "_Alternate"],dictLastL[keyitem + "_Alternate"]))
+                        lineOutput = keyitem + "|" + str(dictOutput[keyitem]) + "|" + dictLastL[keyitem] + "|" + time.strftime('%Y-%m-%dT%H:%M:%SZ', dictFirstL[keyitem])
+                        if boolRowSample == True:
+                          lineOutput = lineOutput + FirstOrSecond(boolFirstRow,dictFirstL[keyitem + "_Alternate"],dictLastL[keyitem + "_Alternate"])
+                        writeCSV(f, lineOutput)
                     del dictOutput[keyitem]
                     del dictFirstL[keyitem]
                     if keyitem in dictLastL:
@@ -177,7 +190,9 @@ with io.open(strOutPath, "w", encoding="utf-8") as f:
         else:
             strTmpLast = "N/A"
             strTmpLastAlt = "N/A"
-        strOutputRow = outputline + "|" + str(dictOutput[outputline]) + "|" + time.strftime('%Y-%m-%dT%H:%M:%SZ', dictFirstL[outputline]) + "|" +  strTmpLast + FirstOrSecond(boolFirstRow,dictFirstL[outputline + "_Alternate"],strTmpLastAlt)
+        strOutputRow = outputline + "|" + str(dictOutput[outputline]) + "|" + time.strftime('%Y-%m-%dT%H:%M:%SZ', dictFirstL[outputline]) + "|" +  strTmpLast
+        if boolRowSample == True:
+          strOutputRow = strOutputRow + FirstOrSecond(boolFirstRow,dictFirstL[outputline + "_Alternate"],strTmpLastAlt)
         writeCSV(f,strOutputRow)
             
 
