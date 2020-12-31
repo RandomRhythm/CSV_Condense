@@ -28,6 +28,7 @@ strQuoteChar = "" #set "" to not use quote char
 #strdateFormat = "%m/%d/%Y %I:%M:%S %p"; # 12/27/2018 2:47:52 PM
 strdateFormat = "%m/%d/%Y %I:%M:%S %p"; # 12/27/2018 2:47:52 PM
 #strdateFormat = "%b %d, %Y, %I:%M:%S %p"; # Dec 27, 2018, 2:47:52 PM
+strOutputDateFormat = "%Y-%m-%dT%H:%M:%SZ"
 boolEpoch = False; #need to convert time from epoch
 boolTrackCount = True; #tracks count event if duplicate time stamp
 boolOldestFirst = True;#oldest item listed first in csv
@@ -153,19 +154,19 @@ with io.open(strOutPath, "w", encoding="utf-8") as f:
                 if (diffTime > 1 and diffTime < intTimeBreak) or (boolTrackCount == True and diffTime >= 0 and diffTime < intTimeBreak) :
                     if keyitem in dictOutput:
                         dictOutput[keyitem] += 1;
-                        dictLastL[keyitem] = time.strftime('%Y-%m-%dT%H:%M:%SZ', logDateTime);
+                        dictLastL[keyitem] = time.strftime(strOutputDateFormat, logDateTime);
                         dictLastL[keyitem + "_Alternate"] = row;
                         #print (keyitem + "|" + str(diffTime))
                     else:
                         dictOutput[keyitem] = 0;
                         dictFirstL[keyitem] = dictTrack[keyitem];
                         dictFirstL[keyitem + "_Alternate"] = row;
-                        dictLastL[keyitem] = time.strftime('%Y-%m-%dT%H:%M:%SZ', logDateTime);
+                        dictLastL[keyitem] = time.strftime(strOutputDateFormat, logDateTime);
                         dictLastL[keyitem + "_Alternate"] = row;
 
                 elif keyitem in dictOutput:
                     if dictOutput[keyitem] > 1:
-                        lineOutput = keyitem + "|" + str(dictOutput[keyitem]) + "|" + dictLastL[keyitem] + "|" + time.strftime('%Y-%m-%dT%H:%M:%SZ', dictFirstL[keyitem])
+                        lineOutput = keyitem + "|" + str(dictOutput[keyitem]) + "|" + dictLastL[keyitem] + "|" + time.strftime(strOutputDateFormat, dictFirstL[keyitem])
                         if boolRowSample == True:
                           lineOutput = lineOutput + FirstOrSecond(boolFirstRow,dictFirstL[keyitem + "_Alternate"],dictLastL[keyitem + "_Alternate"])
                         writeCSV(f, lineOutput)
@@ -190,7 +191,7 @@ with io.open(strOutPath, "w", encoding="utf-8") as f:
         else:
             strTmpLast = "N/A"
             strTmpLastAlt = "N/A"
-        strOutputRow = outputline + "|" + str(dictOutput[outputline]) + "|" + time.strftime('%Y-%m-%dT%H:%M:%SZ', dictFirstL[outputline]) + "|" +  strTmpLast
+        strOutputRow = outputline + "|" + str(dictOutput[outputline]) + "|" + time.strftime(strOutputDateFormat, dictFirstL[outputline]) + "|" +  strTmpLast
         if boolRowSample == True:
           strOutputRow = strOutputRow + FirstOrSecond(boolFirstRow,dictFirstL[outputline + "_Alternate"],strTmpLastAlt)
         writeCSV(f,strOutputRow)
