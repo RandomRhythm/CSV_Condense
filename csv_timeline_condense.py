@@ -18,7 +18,9 @@ dictOutput = dict()
 
 maxInt = 100000000 #csv.field_size_limit
 strCVStoParse = "D:\\logs\\fileforanalysis.csv" #input file
+inputEncoding = "utf-8"
 strOutPath = "D:\\logs\\analysisoutput.txt" #output file
+outputEncoding = "utf-8"
 strSeparatorChar = "," #\t for tab delimeter
 strQuoteChar = "" #set "" to not use quote char
 #strdateFormat = "%Y-%m-%dT%H:%M:%S.%fZ"; #2018-12-27T15:19:53.141Z
@@ -45,7 +47,9 @@ boolIncludeSingleEvent = True #Output for key with no match
 boolRemoveInvalidCharsFromDate = False #if errors are encountered parsing dates then set this to True
 boolCaseSensitive = False # do all tracking and comparison in lowercase
 boolTruncateAtChar = False #truncate key at first space
+boolQuoteOutput = False #add quotes around each field
 strTruncateChar = "\t"
+
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -72,17 +76,20 @@ def returnPipe(listRow):
     return strReturnRow
 
 def writeCSV(fHandle, rowOut):
+  if boolQuoteOutput == True:
     fHandle.write("\"" + rowOut.replace("|", "\",\"") + "\"\n")
+  else:
+    fHandle.write(rowOut.replace("|", ",") + "\n")
 
 
 csv.field_size_limit(maxInt)
-with io.open(strOutPath, "w", encoding="utf-8") as f:
-
-    with open(strCVStoParse, "rt", encoding='utf-8') as csvfile:
+with io.open(strOutPath, "w", encoding=outputEncoding) as f:
+    with open(strCVStoParse, "rt", encoding=inputEncoding) as csvfile:
         if strQuoteChar == "":
           reader = csv.reader(csvfile, delimiter=strSeparatorChar,quoting=csv.QUOTE_NONE) #, quotechar='"'
         else:
           reader = csv.reader(csvfile, delimiter=strSeparatorChar,quotechar=strQuoteChar) #, quotechar='"'
+
         keyitem = "";
         for row in reader:
             logDateTime = None
@@ -195,7 +202,3 @@ with io.open(strOutPath, "w", encoding="utf-8") as f:
         if boolRowSample == True:
           strOutputRow = strOutputRow + FirstOrSecond(boolFirstRow,dictFirstL[outputline + "_Alternate"],strTmpLastAlt)
         writeCSV(f,strOutputRow)
-            
-
-
-
