@@ -15,6 +15,7 @@ dictTrack = dict()
 dictFirstL = dict()
 dictLastL = dict()
 dictOutput = dict()
+dictNumeric = dict()
 
 maxInt = 100000000 #csv.field_size_limit
 strCVStoParse = "D:\\logs\\fileforanalysis.csv" #input file
@@ -33,7 +34,6 @@ strdateFormat = "%m/%d/%Y %I:%M:%S %p"; # 12/27/2018 2:47:52 PM
 strOutputDateFormat = "%Y-%m-%dT%H:%M:%SZ"
 boolEpoch = False; #need to convert time from epoch
 boolTrackCount = True; #tracks count event if duplicate time stamp
-boolOldestFirst = True;#oldest item listed first in csv
 #86400 seconds in day #3600 seconds in hour 
 intTimeBreak = 14400; #If time dif from last event is greater than this value then reset tracking and ouput 
 intDateColumn = 0; #which column contains the date we want tracked
@@ -84,6 +84,7 @@ def writeCSV(fHandle, rowOut):
 
 csv.field_size_limit(maxInt)
 with io.open(strOutPath, "w", encoding=outputEncoding) as f:
+
     with open(strCVStoParse, "rt", encoding=inputEncoding) as csvfile:
         if strQuoteChar == "":
           reader = csv.reader(csvfile, delimiter=strSeparatorChar,quoting=csv.QUOTE_NONE) #, quotechar='"'
@@ -95,6 +96,7 @@ with io.open(strOutPath, "w", encoding=outputEncoding) as f:
             logDateTime = None
             keyitem = ""
             logDtime = ""
+            intNumeric = 0
             if len(row) == intColumnCount:
                 print("decrease column count by one") #exclude non conforming entry
             if len(row) > intColumnCount:
@@ -109,6 +111,14 @@ with io.open(strOutPath, "w", encoding=outputEncoding) as f:
                 logDtime = row[intDateColumn];
                 if boolTimeInNextColumn == True:
                     logDtime = logDtime + " " + row[intDateColumn +1]
+                
+                if len(intNumericAddColumns) > 0:
+                   for listItem in intNumericAddColumns:
+                        if row[listItem].isnumeric():
+                          intNumeric += int(row[listItem])
+                elif intNumericAddColumn > -1:
+                  if row[intNumericAddColumn].isnumeric():
+                    intNumeric = int(row[intNumericAddColumn])
             else:
                 tmpErrorOut = "";
                 for rowEntry in row:
@@ -146,7 +156,7 @@ with io.open(strOutPath, "w", encoding=outputEncoding) as f:
                 keyitem = keyitem.lower();
             if keyitem in dictTrack and logDtime != "":
 
-                if boolOldestFirst == True:
+                if logDateTime > dictTrack[keyitem]:#if boolOldestFirst == True: #if chronologically ordered then direction should not matter. If not chronological then start and end times will not be accurate
                     timeNewest = logDateTime;
                     timeCompare = dictTrack[keyitem];
                 else:
@@ -158,7 +168,7 @@ with io.open(strOutPath, "w", encoding=outputEncoding) as f:
 
 
             
-                if (diffTime > 1 and diffTime < intTimeBreak) or (boolTrackCount == True and diffTime >= 0 and diffTime < intTimeBreak) :
+                if (diffTime > 1 and diffTime < intTimeBreak) or (boolTrackCount == True and diffTime >= 0 and diffTime < intTimeBreak) : #Time comparison
                     if keyitem in dictOutput:
                         dictOutput[keyitem] += 1;
                         dictLastL[keyitem] = time.strftime(strOutputDateFormat, logDateTime);
@@ -171,9 +181,11 @@ with io.open(strOutPath, "w", encoding=outputEncoding) as f:
                         dictLastL[keyitem] = time.strftime(strOutputDateFormat, logDateTime);
                         dictLastL[keyitem + "_Alternate"] = row;
 
-                elif keyitem in dictOutput:
+                elif keyitem in dictOutput: #out of date range and will log output
                     if dictOutput[keyitem] > 1:
-                        lineOutput = keyitem + "|" + str(dictOutput[keyitem]) + "|" + dictLastL[keyitem] + "|" + time.strftime(strOutputDateFormat, dictFirstL[keyitem])
+                        if intNumericAddColumn > -1:
+                          strCount = "|" + str(dictNumeric[keyitem])
+                        lineOutput = keyitem + "|" + str(dictOutput[keyitem]) + "|" + dictLastL[keyitem] + "|" + time.strftime(strOutputDateFormat, dictFirstL[keyitem]) + strCount
                         if boolRowSample == True:
                           lineOutput = lineOutput + FirstOrSecond(boolFirstRow,dictFirstL[keyitem + "_Alternate"],dictLastL[keyitem + "_Alternate"])
                         writeCSV(f, lineOutput)
@@ -189,7 +201,11 @@ with io.open(strOutPath, "w", encoding=outputEncoding) as f:
                     dictFirstL[keyitem] = dictTrack[keyitem];
                     dictFirstL[keyitem + "_Alternate"] = row;
                     dictOutput[keyitem] = 0;
-
+            if intNumericAddColumn > -1: #add up numeric values
+              if keyitem in dictNumeric:
+                dictNumeric[keyitem] = int(dictNumeric[keyitem]) + int(intNumeric)
+              else:
+                dictNumeric[keyitem] = int(intNumeric)
                             
     for outputline in dictOutput:
         if outputline in dictLastL:
@@ -198,7 +214,9 @@ with io.open(strOutPath, "w", encoding=outputEncoding) as f:
         else:
             strTmpLast = "N/A"
             strTmpLastAlt = "N/A"
-        strOutputRow = outputline + "|" + str(dictOutput[outputline]) + "|" + time.strftime(strOutputDateFormat, dictFirstL[outputline]) + "|" +  strTmpLast
+        if intNumericAddColumn > -1:
+          strCount = "|" + str(dictNumeric[outputline])
+        strOutputRow = outputline + "|" + str(dictOutput[outputline]) + "|" + time.strftime(strOutputDateFormat, dictFirstL[outputline]) + "|" +  strTmpLast + strCount
         if boolRowSample == True:
           strOutputRow = strOutputRow + FirstOrSecond(boolFirstRow,dictFirstL[outputline + "_Alternate"],strTmpLastAlt)
         writeCSV(f,strOutputRow)
