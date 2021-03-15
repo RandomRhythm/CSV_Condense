@@ -2,7 +2,7 @@ import csv
 import os
 import operator
 import itertools
-
+import io
 from collections import defaultdict
 
 strinputFile = "D:\\logs\\fileforanalysis.csv" #Input file to process
@@ -11,6 +11,8 @@ boolTruncateAtChar = True #truncate key at first space
 strTruncateChar = "\t"
 boolIncludeCount = True
 boolQuoteOutput = True #add quotes around each field
+inputEncoding = "utf-8"
+outputEncoding = "utf-8"
 dictHeader = dict() #add the column header for each column that will be tracked
 
 # the following are example column headers. Remove the # to use or add your own
@@ -55,7 +57,7 @@ def writeCSV(fHandle, rowOut):
 
 dictOutput = dict()
 intRowCount = 0;
-with open(strinputFile, "rt", encoding="utf-8") as csvfile: #, encoding="utf-16"
+with open(strinputFile, "rt", encoding=inputEncoding) as csvfile: #, encoding="utf-16"
     reader = csv.reader(csvfile, delimiter=',', quotechar='\"')
     keyitem = "";
     for row in reader:
@@ -65,7 +67,7 @@ with open(strinputFile, "rt", encoding="utf-8") as csvfile: #, encoding="utf-16"
                 if headItem in dictHeader:
                     dictHeader[headItem] = intRowCount;
                 intRowCount += 1;
-        else:
+        elif len(row) > 0: #not blank row
             keyitem = ""
             for columnloc in dictHeader:
                if dictHeader[columnloc] != '': #if found in header
@@ -85,7 +87,7 @@ with open(strinputFile, "rt", encoding="utf-8") as csvfile: #, encoding="utf-16"
                 dictOutput[keyitem] += 1;
             else:
                 dictOutput[keyitem] = 1;
-with io.open(strOutPath, "w", encoding="utf-8") as f: #encoding="utf-16"
+with io.open(strOutPath, "w", encoding=outputEncoding) as f: #encoding="utf-16"
   for outputline in dictOutput:
       if boolIncludeCount == True:
         outputline = outputline + "|" + str(dictOutput[outputline])
