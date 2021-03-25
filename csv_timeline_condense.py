@@ -41,6 +41,8 @@ boolTimeInNextColumn = False #Date and time are separated columns
 intKeyColumn = 1; #key used for tracking 
 listKeyColumns = [] # if a list is specified then this list of columns is used instead of intKeyColumn. Example listKeyColumns = [1,7]. Blank value = []
 intColumnCount = 5;#Number of columns in CSV. If column count varies then set this to the lowest number of columns
+intNumericAddColumn = 9; #Column containing numeric value to add up. Set to -1 to disable. Currently this is the total number across the entire log and not the specific time period
+intNumericAddColumns = []; #Columns containing numeric value to add up. Set to [] to disable. Currently this is the total number across the entire log and not the specific time period
 boolRowSample = True #Output a sample row with the condensed output (set to false if there are formatting issues with the input CSV to avoid carrrying the issue over)
 boolFirstRow = True #Output first row or last row as sample with condensed output
 boolIncludeSingleEvent = True #Output for key with no match
