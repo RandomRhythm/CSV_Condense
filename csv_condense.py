@@ -87,13 +87,16 @@ with open(strinputFile, "rt", encoding=inputEncoding) as csvfile: #, encoding="u
                        f2.write("".join(row) + "\n") #write header row
                  else:
                     keyitem = keyitem + "|" + row[dictHeader[columnloc]];
-            if intNumericAddColumn > -1:
+            if intNumericAddColumn > -1 and intNumericAddColumn <= len(dictHeader):
               if row[intNumericAddColumn].isnumeric():
                 intNumeric = int(row[intNumericAddColumn])
                 if keyitem in dictNumeric:
                   dictNumeric[keyitem] = int(dictNumeric[keyitem]) + int(intNumeric)
                 else:
                   dictNumeric[keyitem] = int(intNumeric)
+            elif intNumericAddColumn > len(dictHeader):
+              print("Warning: intNumericAddColumn is greather than the CSV column count. Disabling numeric add function")
+              intNumericAddColumn = -1
             if keyitem in dictOutput:
                 dictOutput[keyitem] += 1;
             else:
