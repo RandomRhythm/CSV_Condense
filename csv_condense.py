@@ -5,6 +5,7 @@ import itertools
 import io
 from collections import defaultdict
 
+
 strinputFile = "D:\\logs\\fileforanalysis.csv" #Input file to process
 strOutPath = "D:\\analysis\\output.csv" #output file
 boolTruncateAtChar = True #truncate key at first space
@@ -13,7 +14,10 @@ boolIncludeCount = True
 boolQuoteOutput = True #add quotes around each field
 inputEncoding = "utf-8"
 outputEncoding = "utf-8"
+intNumericAddColumn = 9; #Column containing numeric value to add up. Set to -1 to disable.
+maxInt = 100000000 #csv.field_size_limit
 dictHeader = dict() #add the column header for each column that will be tracked
+dictNumeric = dict()
 
 # the following are example column headers. Remove the # to use or add your own
 # if your CSV has no header row then set the dictionary header to equal the column number. Example: dictHeader["Dst VM"] = 1;
@@ -57,6 +61,7 @@ def writeCSV(fHandle, rowOut):
 
 dictOutput = dict()
 intRowCount = 0;
+csv.field_size_limit(maxInt)
 with open(strinputFile, "rt", encoding=inputEncoding) as csvfile: #, encoding="utf-16"
     reader = csv.reader(csvfile, delimiter=',', quotechar='\"')
     keyitem = "";
@@ -82,7 +87,13 @@ with open(strinputFile, "rt", encoding=inputEncoding) as csvfile: #, encoding="u
                        f2.write("".join(row) + "\n") #write header row
                  else:
                     keyitem = keyitem + "|" + row[dictHeader[columnloc]];
-
+            if intNumericAddColumn > -1:
+              if row[intNumericAddColumn].isnumeric():
+                intNumeric = int(row[intNumericAddColumn])
+                if keyitem in dictNumeric:
+                  dictNumeric[keyitem] = int(dictNumeric[keyitem]) + int(intNumeric)
+                else:
+                  dictNumeric[keyitem] = int(intNumeric)
             if keyitem in dictOutput:
                 dictOutput[keyitem] += 1;
             else:
@@ -91,4 +102,9 @@ with io.open(strOutPath, "w", encoding=outputEncoding) as f: #encoding="utf-16"
   for outputline in dictOutput:
       if boolIncludeCount == True:
         outputline = outputline + "|" + str(dictOutput[outputline])
+      else:
+        outputline = outputline 
+      if intNumericAddColumn > -1:
+        strCount = "|" + str(dictNumeric[outputline])
+        outputline = outputline + strCount
       writeCSV(f,outputline)
