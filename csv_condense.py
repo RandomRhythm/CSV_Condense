@@ -66,15 +66,17 @@ def writeCSV(fHandle, rowOut):
 dictOutput = dict()
 listFilePaths = []
 
-if os.path.isdir(strinputPath):  
-  for (dirpath, dirnames, filenames) in os.walk(strinputPath):
+if os.path.isdir(strinputFile):  
+  for (dirpath, dirnames, filenames) in os.walk(strinputFile):
     for file in filenames:
         scanPath = os.path.join(dirpath, file)
         print(scanPath + "\n")
         listFilePaths.append(scanPath)
-elif os.path.isfile(strinputPath):  
-  listFilePaths.append(strinputPath)
-
+elif os.path.isfile(strinputFile):  
+  listFilePaths.append(strinputFile)
+else:
+  print("Bad file path?")
+  
 for strinputFile in listFilePaths:
   boolFirstRow = boolHasHeader;
   csv.field_size_limit(maxInt)
@@ -85,10 +87,14 @@ for strinputFile in listFilePaths:
       for row in reader:
           if boolFirstRow == True: #parse header row
               boolFirstRow= False
-              for headItem in row:
-                  if headItem in dictHeader:
-                      dictHeader[headItem] = intRowCount;
-                  intRowCount += 1;
+              if boolHasHeader == True:
+                for headItem in row:
+                    if headItem in dictHeader:
+                        dictHeader[headItem] = intRowCount;
+                    intRowCount += 1;
+              for headItem in dictHeader:
+                  if not isnumeric(dictHeader[headItem]):
+                    print("Missing header value \"" + headItem + "\"")
           else: #not blank row
               keyitem = ""
               for columnloc in sorted(dictHeader, key=dictHeader.get): #sort off value to keep column alignment consistent with source
